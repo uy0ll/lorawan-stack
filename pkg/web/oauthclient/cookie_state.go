@@ -17,7 +17,6 @@ package oauthclient
 import (
 	"encoding/gob"
 	"net/http"
-	"time"
 
 	echo "github.com/labstack/echo/v4"
 	"go.thethings.network/lorawan-stack/v3/pkg/random"
@@ -44,7 +43,7 @@ func (oc *OAuthClient) StateCookie() *cookie.Cookie {
 		Name:     oc.config.StateCookieName,
 		HTTPOnly: true,
 		Path:     oc.getMountPath(),
-		MaxAge:   10 * time.Minute,
+		MaxAge:   0,
 		SameSite: sameSite,
 	}
 }

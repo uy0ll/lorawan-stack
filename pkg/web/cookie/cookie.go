@@ -52,7 +52,7 @@ func (d *Cookie) new(r *http.Request) http.Cookie {
 	return http.Cookie{
 		Name:     d.Name,
 		Path:     d.Path,
-		MaxAge:   int(d.MaxAge.Nanoseconds() / 1000),
+		MaxAge:   int(d.MaxAge.Seconds()),
 		Secure:   r.URL.Scheme == "https",
 		HttpOnly: d.HTTPOnly,
 		SameSite: sameSite,
