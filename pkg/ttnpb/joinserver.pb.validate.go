@@ -146,7 +146,14 @@ func (m *NwkSKeysResponse) ValidateFields(paths ...string) error {
 		switch name {
 		case "f_nwk_s_int_key":
 
-			if v, ok := interface{}(&m.FNwkSIntKey).(interface{ ValidateFields(...string) error }); ok {
+			if m.GetFNwkSIntKey() == nil {
+				return NwkSKeysResponseValidationError{
+					field:  "f_nwk_s_int_key",
+					reason: "value is required",
+				}
+			}
+
+			if v, ok := interface{}(m.GetFNwkSIntKey()).(interface{ ValidateFields(...string) error }); ok {
 				if err := v.ValidateFields(subs...); err != nil {
 					return NwkSKeysResponseValidationError{
 						field:  "f_nwk_s_int_key",
@@ -158,7 +165,14 @@ func (m *NwkSKeysResponse) ValidateFields(paths ...string) error {
 
 		case "s_nwk_s_int_key":
 
-			if v, ok := interface{}(&m.SNwkSIntKey).(interface{ ValidateFields(...string) error }); ok {
+			if m.GetSNwkSIntKey() == nil {
+				return NwkSKeysResponseValidationError{
+					field:  "s_nwk_s_int_key",
+					reason: "value is required",
+				}
+			}
+
+			if v, ok := interface{}(m.GetSNwkSIntKey()).(interface{ ValidateFields(...string) error }); ok {
 				if err := v.ValidateFields(subs...); err != nil {
 					return NwkSKeysResponseValidationError{
 						field:  "s_nwk_s_int_key",
@@ -170,7 +184,14 @@ func (m *NwkSKeysResponse) ValidateFields(paths ...string) error {
 
 		case "nwk_s_enc_key":
 
-			if v, ok := interface{}(&m.NwkSEncKey).(interface{ ValidateFields(...string) error }); ok {
+			if m.GetNwkSEncKey() == nil {
+				return NwkSKeysResponseValidationError{
+					field:  "nwk_s_enc_key",
+					reason: "value is required",
+				}
+			}
+
+			if v, ok := interface{}(m.GetNwkSEncKey()).(interface{ ValidateFields(...string) error }); ok {
 				if err := v.ValidateFields(subs...); err != nil {
 					return NwkSKeysResponseValidationError{
 						field:  "nwk_s_enc_key",

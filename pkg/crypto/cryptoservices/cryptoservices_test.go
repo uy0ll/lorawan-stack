@@ -450,9 +450,9 @@ func (s *mockNetworkRPCServer) DeriveNwkSKeys(ctx context.Context, req *ttnpb.De
 		return nil, err
 	}
 	return &ttnpb.NwkSKeysResponse{
-		FNwkSIntKey: *fNwkSIntKeyEnvelope,
-		SNwkSIntKey: *sNwkSIntKeyEnvelope,
-		NwkSEncKey:  *nwkSEncKeyEnvelope,
+		FNwkSIntKey: fNwkSIntKeyEnvelope,
+		SNwkSIntKey: sNwkSIntKeyEnvelope,
+		NwkSEncKey:  nwkSEncKeyEnvelope,
 	}, nil
 }
 

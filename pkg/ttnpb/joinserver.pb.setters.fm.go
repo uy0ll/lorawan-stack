@@ -53,10 +53,18 @@ func (dst *NwkSKeysResponse) SetFields(src *NwkSKeysResponse, paths ...string) e
 		case "f_nwk_s_int_key":
 			if len(subs) > 0 {
 				var newDst, newSrc *KeyEnvelope
-				if src != nil {
-					newSrc = &src.FNwkSIntKey
+				if (src == nil || src.FNwkSIntKey == nil) && dst.FNwkSIntKey == nil {
+					continue
 				}
-				newDst = &dst.FNwkSIntKey
+				if src != nil {
+					newSrc = src.FNwkSIntKey
+				}
+				if dst.FNwkSIntKey != nil {
+					newDst = dst.FNwkSIntKey
+				} else {
+					newDst = &KeyEnvelope{}
+					dst.FNwkSIntKey = newDst
+				}
 				if err := newDst.SetFields(newSrc, subs...); err != nil {
 					return err
 				}
@@ -64,17 +72,24 @@ func (dst *NwkSKeysResponse) SetFields(src *NwkSKeysResponse, paths ...string) e
 				if src != nil {
 					dst.FNwkSIntKey = src.FNwkSIntKey
 				} else {
-					var zero KeyEnvelope
-					dst.FNwkSIntKey = zero
+					dst.FNwkSIntKey = nil
 				}
 			}
 		case "s_nwk_s_int_key":
 			if len(subs) > 0 {
 				var newDst, newSrc *KeyEnvelope
-				if src != nil {
-					newSrc = &src.SNwkSIntKey
+				if (src == nil || src.SNwkSIntKey == nil) && dst.SNwkSIntKey == nil {
+					continue
 				}
-				newDst = &dst.SNwkSIntKey
+				if src != nil {
+					newSrc = src.SNwkSIntKey
+				}
+				if dst.SNwkSIntKey != nil {
+					newDst = dst.SNwkSIntKey
+				} else {
+					newDst = &KeyEnvelope{}
+					dst.SNwkSIntKey = newDst
+				}
 				if err := newDst.SetFields(newSrc, subs...); err != nil {
 					return err
 				}
@@ -82,17 +97,24 @@ func (dst *NwkSKeysResponse) SetFields(src *NwkSKeysResponse, paths ...string) e
 				if src != nil {
 					dst.SNwkSIntKey = src.SNwkSIntKey
 				} else {
-					var zero KeyEnvelope
-					dst.SNwkSIntKey = zero
+					dst.SNwkSIntKey = nil
 				}
 			}
 		case "nwk_s_enc_key":
 			if len(subs) > 0 {
 				var newDst, newSrc *KeyEnvelope
-				if src != nil {
-					newSrc = &src.NwkSEncKey
+				if (src == nil || src.NwkSEncKey == nil) && dst.NwkSEncKey == nil {
+					continue
 				}
-				newDst = &dst.NwkSEncKey
+				if src != nil {
+					newSrc = src.NwkSEncKey
+				}
+				if dst.NwkSEncKey != nil {
+					newDst = dst.NwkSEncKey
+				} else {
+					newDst = &KeyEnvelope{}
+					dst.NwkSEncKey = newDst
+				}
 				if err := newDst.SetFields(newSrc, subs...); err != nil {
 					return err
 				}
@@ -100,8 +122,7 @@ func (dst *NwkSKeysResponse) SetFields(src *NwkSKeysResponse, paths ...string) e
 				if src != nil {
 					dst.NwkSEncKey = src.NwkSEncKey
 				} else {
-					var zero KeyEnvelope
-					dst.NwkSEncKey = zero
+					dst.NwkSEncKey = nil
 				}
 			}
 

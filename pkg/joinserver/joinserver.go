@@ -615,9 +615,9 @@ func (js *JoinServer) GetNwkSKeys(ctx context.Context, req *ttnpb.SessionKeyRequ
 	}
 
 	return &ttnpb.NwkSKeysResponse{
-		NwkSEncKey:  *ks.NwkSEncKey,
-		FNwkSIntKey: *ks.FNwkSIntKey,
-		SNwkSIntKey: *ks.SNwkSIntKey,
+		NwkSEncKey:  ks.NwkSEncKey,
+		FNwkSIntKey: ks.FNwkSIntKey,
+		SNwkSIntKey: ks.SNwkSIntKey,
 	}, nil
 }
 

@@ -116,15 +116,15 @@ func (s *networkRPCClient) DeriveNwkSKeys(ctx context.Context, dev *ttnpb.EndDev
 		return NwkSKeys{}, err
 	}
 	var res NwkSKeys
-	res.FNwkSIntKey, err = cryptoutil.UnwrapAES128Key(ctx, &keys.FNwkSIntKey, s.KeyVault)
+	res.FNwkSIntKey, err = cryptoutil.UnwrapAES128Key(ctx, keys.FNwkSIntKey, s.KeyVault)
 	if err != nil {
 		return NwkSKeys{}, err
 	}
-	res.SNwkSIntKey, err = cryptoutil.UnwrapAES128Key(ctx, &keys.SNwkSIntKey, s.KeyVault)
+	res.SNwkSIntKey, err = cryptoutil.UnwrapAES128Key(ctx, keys.SNwkSIntKey, s.KeyVault)
 	if err != nil {
 		return NwkSKeys{}, err
 	}
-	res.NwkSEncKey, err = cryptoutil.UnwrapAES128Key(ctx, &keys.NwkSEncKey, s.KeyVault)
+	res.NwkSEncKey, err = cryptoutil.UnwrapAES128Key(ctx, keys.NwkSEncKey, s.KeyVault)
 	if err != nil {
 		return NwkSKeys{}, err
 	}

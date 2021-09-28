@@ -50,11 +50,11 @@ message SessionKeyRequest {
 
 message NwkSKeysResponse {
   // The (encrypted) Forwarding Network Session Integrity Key (or Network Session Key in 1.0 compatibility mode).
-  KeyEnvelope f_nwk_s_int_key = 1 [(gogoproto.nullable) = false, (validate.rules).message.required = true];
+  KeyEnvelope f_nwk_s_int_key = 1 [(validate.rules).message.required = true];
   // The (encrypted) Serving Network Session Integrity Key.
-  KeyEnvelope s_nwk_s_int_key = 2 [(gogoproto.nullable) = false, (validate.rules).message.required = true];
+  KeyEnvelope s_nwk_s_int_key = 2 [(validate.rules).message.required = true];
   // The (encrypted) Network Session Encryption Key.
-  KeyEnvelope nwk_s_enc_key = 3 [(gogoproto.nullable) = false, (validate.rules).message.required = true];
+  KeyEnvelope nwk_s_enc_key = 3 [(validate.rules).message.required = true];
 }
 
 // The NsJs service connects a Network Server to a Join Server.
