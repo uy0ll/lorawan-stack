@@ -564,7 +564,9 @@ func (c *Connection) ScheduleDown(path *ttnpb.DownlinkPath, msg *ttnpb.DownlinkM
 			"rx_window", i+1,
 			"starts", em.Starts(),
 			"duration", em.Duration(),
-		)).Debug("Scheduled downlink")
+			"dl_power", eirp,
+			"phy_max_eirp", phy.DefaultMaxEIRP,
+		)).Info("Scheduled downlink")
 		break
 	}
 	if len(rxErrs) > 0 {
