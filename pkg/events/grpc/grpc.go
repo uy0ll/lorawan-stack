@@ -66,6 +66,9 @@ func (srv *EventsServer) Stream(req *ttnpb.StreamEventsRequest, stream ttnpb.Eve
 		return err
 	}
 
+	registerStreamStarted(ctx)
+	defer registerStreamEnded(ctx)
+
 	ch := make(events.Channel, 8)
 	handler := events.ContextHandler(ctx, ch)
 
@@ -132,6 +135,7 @@ func (srv *EventsServer) Stream(req *ttnpb.StreamEventsRequest, stream ttnpb.Eve
 			if err := stream.Send(proto); err != nil {
 				return err
 			}
+			registerStreamEventSent(ctx)
 		}
 	}
 }

@@ -21,6 +21,7 @@ For details about compatibility between different releases, see the **Commitment
   - `as.distribution.local.individual.subscription-queue-size` controls how many uplinks the Application Server should buffer for an individual local subscriber. Has the same semantics as `--as.distribution.global.individual.subscription-queue-size`.
 - `ttn_lw_gs_txack_received_total`, `ttn_lw_gs_txack_forwarded_total` and `ttn_lw_gs_txack_dropped_total` metrics, which track the transmission acknowledgements from gateways.
 - `gs.txack.receive`, `gs.txack.drop` and `gs.txack.forward` events, which track the transmission acknowledgements from gateways.
+- `ttn_lw_events_grpc_started_total` and `ttn_lw_events_grpc_ended_total` metrics to track the number of event streams, and `ttn_lw_events_grpc_sent_total` to track the number of events sent on those streams.
 
 ### Changed
 
