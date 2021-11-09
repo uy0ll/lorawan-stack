@@ -116,8 +116,8 @@ func (Dev) SQLDump() error {
 	return ioutil.WriteFile(filepath.Join(".cache", "sqldump.sql"), []byte(output), 0644)
 }
 
-// SQLCreateSeedDB creates a database template from the current dump.
-func (Dev) SQLCreateSeedDB() error {
+// sqlCreateSeedDB creates a database template from the current dump.
+func (Dev) sqlCreateSeedDB() error {
 	if mg.Verbose() {
 		fmt.Println("Creating seed DB from dump")
 	}
@@ -135,10 +135,13 @@ func (Dev) SQLRestore(ctx context.Context) error {
 	}
 	d := filepath.Join(".cache", "sqldump.sql")
 	if _, err := os.Stat(d); errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("Dumpfile does not exist: %w", d)
+		return fmt.Errorf("Dumpfile does not exist: %s", d)
 	}
-	return sh.Run(filepath.Join("tools", "mage", "scripts", "recreate-db-from-dump.sh"), devDatabaseName, d)
-
+	if err := sh.Run(filepath.Join("tools", "mage", "scripts", "recreate-db-from-dump.sh"), devDatabaseName, d); err != nil {
+		return err
+	}
+	mg.Deps(Dev.sqlCreateSeedDB)
+	return nil
 }
 
 // RedisFlush deletes all keys from redis.
@@ -165,10 +168,7 @@ func (Dev) DBStart() error {
 	if mg.Verbose() {
 		fmt.Println("Starting dev databases")
 	}
-	if err := execDockerCompose(append([]string{"up", "-d"}, devDatabases...)...); err != nil {
-		return err
-	}
-	return execDockerCompose("ps")
+	return execDockerCompose(append([]string{"up", "-d"}, devDatabases...)...)
 }
 
 // DBStop stops the databases of the development environment.
@@ -265,6 +265,7 @@ func (Dev) InitStack() error {
 	if err := writeToFile(filepath.Join(devDir, "admin_api_key.txt"), []byte(key.Key)); err != nil {
 		return err
 	}
+	mg.SerialDeps(Dev.SQLDump, Dev.sqlCreateSeedDB)
 	return nil
 }
 
