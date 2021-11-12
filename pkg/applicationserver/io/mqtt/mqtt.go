@@ -150,29 +150,29 @@ func (c *connection) setup(ctx context.Context) error {
 			case <-ctx.Done():
 				return
 			case up := <-c.io.Up():
-				logger := logger.WithField("device_uid", unique.ID(up.Context, up.EndDeviceIdentifiers))
+				logger := logger.WithField("device_uid", unique.ID(up.Context, up.EndDeviceIds))
 				var topicParts []string
 				switch up.Up.(type) {
 				case *ttnpb.ApplicationUp_UplinkMessage:
-					topicParts = c.format.UplinkTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.DeviceId)
+					topicParts = c.format.UplinkTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.EndDeviceIds.DeviceId)
 				case *ttnpb.ApplicationUp_JoinAccept:
-					topicParts = c.format.JoinAcceptTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.DeviceId)
+					topicParts = c.format.JoinAcceptTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.EndDeviceIds.DeviceId)
 				case *ttnpb.ApplicationUp_DownlinkAck:
-					topicParts = c.format.DownlinkAckTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.DeviceId)
+					topicParts = c.format.DownlinkAckTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.EndDeviceIds.DeviceId)
 				case *ttnpb.ApplicationUp_DownlinkNack:
-					topicParts = c.format.DownlinkNackTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.DeviceId)
+					topicParts = c.format.DownlinkNackTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.EndDeviceIds.DeviceId)
 				case *ttnpb.ApplicationUp_DownlinkSent:
-					topicParts = c.format.DownlinkSentTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.DeviceId)
+					topicParts = c.format.DownlinkSentTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.EndDeviceIds.DeviceId)
 				case *ttnpb.ApplicationUp_DownlinkFailed:
-					topicParts = c.format.DownlinkFailedTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.DeviceId)
+					topicParts = c.format.DownlinkFailedTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.EndDeviceIds.DeviceId)
 				case *ttnpb.ApplicationUp_DownlinkQueued:
-					topicParts = c.format.DownlinkQueuedTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.DeviceId)
+					topicParts = c.format.DownlinkQueuedTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.EndDeviceIds.DeviceId)
 				case *ttnpb.ApplicationUp_DownlinkQueueInvalidated:
-					topicParts = c.format.DownlinkQueueInvalidatedTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.DeviceId)
+					topicParts = c.format.DownlinkQueueInvalidatedTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.EndDeviceIds.DeviceId)
 				case *ttnpb.ApplicationUp_LocationSolved:
-					topicParts = c.format.LocationSolvedTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.DeviceId)
+					topicParts = c.format.LocationSolvedTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.EndDeviceIds.DeviceId)
 				case *ttnpb.ApplicationUp_ServiceData:
-					topicParts = c.format.ServiceDataTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.DeviceId)
+					topicParts = c.format.ServiceDataTopic(unique.ID(up.Context, c.io.ApplicationIDs()), up.EndDeviceIds.DeviceId)
 				}
 				if topicParts == nil {
 					continue
