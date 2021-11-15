@@ -151,6 +151,7 @@ const MacSettingsSection = props => {
     setIsCollapsed(isCollapsed => !isCollapsed)
   }, [isCollapsed, pingPeriodicityRequired])
 
+  const isUseAdrRef = React.useRef(isUseAdr)
   const [useAdr, setUseAdr] = React.useState(isUseAdr)
   const handleUseAdrChange = React.useCallback(evt => {
     const checked = evt.target.checked
@@ -164,6 +165,13 @@ const MacSettingsSection = props => {
       setIsCollapsed(false)
     }
   }, [handleIsCollapsedChange, isABP, isClassB, isCollapsed, isMulticast, pingPeriodicityRequired])
+
+  React.useEffect(() => {
+    if (isUseAdrRef.current !== isUseAdr) {
+      isUseAdrRef.current = isUseAdr
+      setUseAdr(isUseAdr)
+    }
+  }, [isUseAdr])
 
   return (
     <Form.CollapseSection

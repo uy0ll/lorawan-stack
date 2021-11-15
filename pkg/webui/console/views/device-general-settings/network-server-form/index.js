@@ -60,14 +60,8 @@ const defaultValues = {
 }
 
 const NetworkServerForm = React.memo(props => {
-  const {
-    device,
-    onSubmit,
-    onSubmitSuccess,
-    mayEditKeys,
-    mayReadKeys,
-    getDefaultMacSettings,
-  } = props
+  const { device, onSubmit, onSubmitSuccess, mayEditKeys, mayReadKeys, getDefaultMacSettings } =
+    props
   const {
     multicast = false,
     supports_join = false,
@@ -156,6 +150,9 @@ const NetworkServerForm = React.memo(props => {
     : multicast
     ? ACTIVATION_MODES.MULTICAST
     : ACTIVATION_MODES.ABP
+
+  const initialUseAdr =
+    typeof mac_settings.use_adr === 'boolean' ? mac_settings.use_adr : macSettings.use_adr
 
   const validationContext = React.useMemo(
     () => ({
@@ -429,7 +426,7 @@ const NetworkServerForm = React.memo(props => {
         lorawanVersion={lorawanVersion}
         isClassB={isClassB}
         isClassC={isClassC}
-        isUseAdr={mac_settings.use_adr}
+        isUseAdr={initialUseAdr}
       />
       <SubmitBar>
         <Form.Submit component={SubmitButton} message={sharedMessages.saveChanges} />
