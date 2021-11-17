@@ -22,6 +22,7 @@ For details about compatibility between different releases, see the **Commitment
 ### Fixed
 
 - The reported sub-band's `downlink_utilization` in gateway connection stats now represents the utilization of the available duty-cycle time.
+- Using the correct timestamp when retreiving the "Last activity" data point for Gateways on initial page loads in the Console.
 
 ### Security
 
