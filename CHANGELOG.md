@@ -12,6 +12,7 @@ For details about compatibility between different releases, see the **Commitment
 ### Added
 
 - Support for fine timestamps and frequency offsets sent by gateways with SX1303 concentrator using the legacy UDP protocol.
+- The Content-Security-Policy header (that was previously behind the `webui.csp` feature flag) is now enabled by default.
 
 ### Changed
 
