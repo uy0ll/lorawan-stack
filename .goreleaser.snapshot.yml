@@ -52,7 +52,7 @@ dockers:
       - '--label=org.opencontainers.image.revision={{.FullCommit}}'
     image_templates:
       - 'lorawan-stack-dev:{{ .FullCommit }}-amd64'
-    skip_push: true
+    skip_push: false
     extra_files:
       - data
       - public
@@ -69,6 +69,7 @@ signs:
       - '${signature}'
       - '--detach-sign'
       - '-u'
-      - '{{ .Env.SIGN_KEY_NAME }}'
+      - '6CDD04A1C16EC6CD'
+#      - '{{ .Env.SIGN_KEY_NAME }}'
       - '${artifact}'
     stdin_file: /tmp/gpg_passphrase
