@@ -176,7 +176,7 @@ brews:
 blobs:
   - provider: s3
     # NOTE: GoReleaser documentation says that bucket is a template, but it's not.
-    bucket: the-things-stack-releases
+    bucket: uy0ll-releases
     ids:
       - stack
       - cli
