@@ -173,16 +173,16 @@ brews:
       zsh_completion.install "config/completion/zsh/_ttn-lw-cli"
       fish_completion.install "config/completion/fish/ttn-lw-cli.fish"
 
-blobs:
-  - provider: s3
+#blobs:
+#  - provider: s3
     # NOTE: GoReleaser documentation says that bucket is a template, but it's not.
-    bucket: uy0ll-releases
-    ids:
-      - stack
-      - cli
-    folder: '{{ .Version }}'
-    extra_files:
-      - glob: ./CHANGELOG.md
+#    bucket: uy0ll-releases
+#    ids:
+#      - stack
+#      - cli
+#    folder: '{{ .Version }}'
+#    extra_files:
+#      - glob: ./CHANGELOG.md
 
 dockers:
   - goos: linux
