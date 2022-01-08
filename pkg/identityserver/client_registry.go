@@ -263,7 +263,7 @@ func (is *IdentityServer) listClients(ctx context.Context, req *ttnpb.ListClient
 	}
 
 	for i, cli := range clis.Clients {
-		entityRights := callerMemberships.GetRights(callerAccountID, cli.GetIds())
+		entityRights := callerMemberships.GetRights(callerAccountID, cli.GetIds()).Union(authInfo.GetUniversalRights())
 		if !entityRights.IncludesAll(ttnpb.RIGHT_CLIENT_ALL) {
 			clis.Clients[i] = cli.PublicSafe()
 		}
@@ -363,10 +363,11 @@ func (is *IdentityServer) restoreClient(ctx context.Context, ids *ttnpb.ClientId
 		if err != nil {
 			return err
 		}
-		if cli.DeletedAt == nil {
+		deletedAt := ttnpb.StdTime(cli.DeletedAt)
+		if deletedAt == nil {
 			panic("store.WithSoftDeleted(ctx, true) returned result that is not deleted")
 		}
-		if time.Since(*cli.DeletedAt) > is.configFromContext(ctx).Delete.Restore {
+		if time.Since(*deletedAt) > is.configFromContext(ctx).Delete.Restore {
 			return errRestoreWindowExpired.New()
 		}
 		return cliStore.RestoreClient(ctx, ids)

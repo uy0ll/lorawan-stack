@@ -240,12 +240,10 @@ func (is *IdentityServer) listApplications(ctx context.Context, req *ttnpb.ListA
 		return nil, err
 	}
 
-	if !clusterAuth {
-		for i, app := range apps.Applications {
-			entityRights := callerMemberships.GetRights(callerAccountID, app.GetIds())
-			if !entityRights.IncludesAll(ttnpb.RIGHT_APPLICATION_INFO) {
-				apps.Applications[i] = app.PublicSafe()
-			}
+	for i, app := range apps.Applications {
+		entityRights := callerMemberships.GetRights(callerAccountID, app.GetIds()).Union(authInfo.GetUniversalRights())
+		if !entityRights.IncludesAll(ttnpb.RIGHT_APPLICATION_INFO) {
+			apps.Applications[i] = app.PublicSafe()
 		}
 	}
 
@@ -319,10 +317,11 @@ func (is *IdentityServer) restoreApplication(ctx context.Context, ids *ttnpb.App
 		if err != nil {
 			return err
 		}
-		if app.DeletedAt == nil {
+		deletedAt := ttnpb.StdTime(app.DeletedAt)
+		if deletedAt == nil {
 			panic("store.WithSoftDeleted(ctx, true) returned result that is not deleted")
 		}
-		if time.Since(*app.DeletedAt) > is.configFromContext(ctx).Delete.Restore {
+		if time.Since(*deletedAt) > is.configFromContext(ctx).Delete.Restore {
 			return errRestoreWindowExpired.New()
 		}
 		return appStore.RestoreApplication(ctx, ids)
