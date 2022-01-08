@@ -13,7 +13,10 @@
 // limitations under the License.
 
 import React from 'react'
+import { defineMessages } from 'react-intl'
 
+import Link from '@ttn-lw/components/link'
+import ModalButton from '@ttn-lw/components/button/modal-button'
 import SubmitButton from '@ttn-lw/components/submit-button'
 import SubmitBar from '@ttn-lw/components/submit-bar'
 import Input from '@ttn-lw/components/input'
@@ -21,6 +24,9 @@ import Radio from '@ttn-lw/components/radio-button'
 import Form from '@ttn-lw/components/form'
 import Notification from '@ttn-lw/components/notification'
 import Checkbox from '@ttn-lw/components/checkbox'
+import toast from '@ttn-lw/components/toast'
+
+import Message from '@ttn-lw/lib/components/message'
 
 import PhyVersionInput from '@console/components/phy-version-input'
 import LorawanVersionInput from '@console/components/lorawan-version-input'
@@ -29,7 +35,8 @@ import MacSettingsSection from '@console/components/mac-settings-section'
 import { NsFrequencyPlansSelect } from '@console/containers/freq-plans-select'
 import DevAddrInput from '@console/containers/dev-addr-input'
 
-import tooltipIds from '@ttn-lw/lib/constants/glossary-ids'
+import tooltipIds from '@ttn-lw/lib/constants/tooltip-ids'
+import { isBackend, getBackendErrorName } from '@ttn-lw/lib/errors/utils'
 import diff from '@ttn-lw/lib/diff'
 import sharedMessages from '@ttn-lw/lib/shared-messages'
 import PropTypes from '@ttn-lw/lib/prop-types'
@@ -51,6 +58,15 @@ import {
 
 import validationSchema from './validation-schema'
 
+const m = defineMessages({
+  resetTitle: 'Session and MAC state reset',
+  resetButtonTitle: 'Reset session and MAC state',
+  resetSuccess: 'End device reset',
+  resetFailure: 'There was an error and the end device session and MAC state could not be reset',
+  modalMessage:
+    'Are you sure you want to reset the session context and MAC state of this end device?{break}{break}This will have the following consequences:<ul><li>For <OTAADocLink>OTAA</OTAADocLink>-activated end devices <b>all session and MAC data is wiped and the end device MUST rejoin</b></li><li>For <ABPDocLink>ABP</ABPDocLink>-activated end devices, session keys, device address and downlink queue are preserved, while <b>the MAC state is reset</b></li></ul>',
+})
+
 const defaultValues = {
   mac_settings: {
     ping_slot_periodicity: '',
@@ -58,37 +74,26 @@ const defaultValues = {
 }
 
 const NetworkServerForm = React.memo(props => {
-  const { device, onSubmit, onSubmitSuccess, mayEditKeys, mayReadKeys } = props
-  const { multicast = false, supports_join = false, supports_class_b = false } = device
+  const {
+    device,
+    onSubmit,
+    onSubmitSuccess,
+    mayEditKeys,
+    mayReadKeys,
+    onMacReset,
+    getDefaultMacSettings,
+  } = props
+  const {
+    multicast = false,
+    supports_join = false,
+    supports_class_b = false,
+    supports_class_c = false,
+    mac_settings = {},
+  } = device
 
   const isABP = isDeviceABP(device)
   const isMulticast = isDeviceMulticast(device)
   const isJoinedOTAA = isDeviceOTAA(device) && isDeviceJoined(device)
-
-  const formRef = React.useRef(null)
-
-  const [error, setError] = React.useState('')
-
-  const [lorawanVersion, setLorawanVersion] = React.useState(device.lorawan_version)
-  const lwVersion = parseLorawanMacVersion(lorawanVersion)
-
-  const [freqPlan, setFreqPlan] = React.useState(device.frequency_plan_id)
-  const handleFreqPlanChange = React.useCallback(plan => {
-    setFreqPlan(plan.value)
-  }, [])
-
-  const [isClassB, setClassB] = React.useState(supports_class_b)
-  const handleClassBChange = React.useCallback(evt => {
-    const { checked } = evt.target
-
-    setClassB(checked)
-  }, [])
-
-  const initialActivationMode = supports_join
-    ? ACTIVATION_MODES.OTAA
-    : multicast
-    ? ACTIVATION_MODES.MULTICAST
-    : ACTIVATION_MODES.ABP
 
   const validationContext = React.useMemo(
     () => ({
@@ -100,6 +105,102 @@ const NetworkServerForm = React.memo(props => {
     [device, mayEditKeys, mayReadKeys],
   )
 
+  const formRef = React.useRef(null)
+
+  const [macSettings, setMacSettings] = React.useState({})
+
+  const [phyVersion, setPhyVersion] = React.useState(device.lorawan_phy_version)
+  const phyVersionRef = React.useRef()
+  const handlePhyVersionChange = React.useCallback(setPhyVersion, [])
+
+  const [error, setError] = React.useState('')
+
+  const [lorawanVersion, setLorawanVersion] = React.useState(device.lorawan_version)
+  const lwVersion = parseLorawanMacVersion(lorawanVersion)
+
+  const freqPlanRef = React.useRef(device.frequency_plan_id)
+  const [freqPlan, setFreqPlan] = React.useState(device.frequency_plan_id)
+  const handleFreqPlanChange = React.useCallback(plan => {
+    setFreqPlan(plan.value)
+  }, [])
+
+  const [isClassB, setClassB] = React.useState(supports_class_b)
+  const handleClassBChange = React.useCallback(evt => {
+    const { checked } = evt.target
+
+    setClassB(checked)
+  }, [])
+  const [isClassC, setClassC] = React.useState(supports_class_c)
+  const handleClassCChange = React.useCallback(evt => {
+    const { checked } = evt.target
+
+    setClassC(checked)
+  }, [])
+
+  React.useEffect(() => {
+    const getMacSettings = async (freqPlan, phyVersion) => {
+      try {
+        const settings = await getDefaultMacSettings(freqPlan, phyVersion)
+        setMacSettings(settings)
+        if (formRef.current) {
+          const { setValues, values } = formRef.current
+
+          setValues(
+            validationSchema.cast(
+              {
+                ...values,
+                mac_settings: {
+                  ...settings,
+                  ...values.mac_settings,
+                },
+              },
+              { context: validationContext },
+            ),
+          )
+        }
+      } catch (err) {
+        if (isBackend(err) && getBackendErrorName(err) === 'no_band_version') {
+          toast({
+            type: toast.types.ERROR,
+            message: messages.fpNotFoundError,
+            messageValues: {
+              lorawanVersion,
+              freqPlan,
+              code: msg => <code>{msg}</code>,
+            },
+          })
+        } else {
+          toast({
+            type: toast.types.ERROR,
+            message: messages.macSettingsError,
+            messageValues: {
+              freqPlan,
+              code: msg => <code>{msg}</code>,
+            },
+          })
+        }
+      }
+    }
+
+    if (freqPlan && phyVersion) {
+      if (freqPlanRef.current !== freqPlan || phyVersionRef.current !== phyVersion) {
+        freqPlanRef.current = freqPlan
+        phyVersionRef.current = phyVersion
+
+        getMacSettings(freqPlan, phyVersion)
+      }
+    }
+  }, [freqPlan, getDefaultMacSettings, lorawanVersion, phyVersion, validationContext])
+
+  const initialActivationMode = supports_join
+    ? ACTIVATION_MODES.OTAA
+    : multicast
+    ? ACTIVATION_MODES.MULTICAST
+    : ACTIVATION_MODES.ABP
+
+  const initialUseAdr =
+    typeof mac_settings.use_adr === 'boolean' ? mac_settings.use_adr : macSettings.use_adr
+
   const initialValues = React.useMemo(
     () =>
       validationSchema.cast(
@@ -107,22 +208,44 @@ const NetworkServerForm = React.memo(props => {
           ...defaultValues,
           ...device,
           _activation_mode: initialActivationMode,
-          _device_classes: { class_b: device.supports_class_b, class_c: device.supports_class_c },
+          _device_classes: { class_b: isClassB, class_c: isClassC },
+          supports_class_b: isClassB,
+          supports_class_c: isClassC,
           mac_settings: {
             ...defaultValues.mac_settings,
+            ...macSettings,
             ...device.mac_settings,
           },
         },
-        { context: validationContext },
+        { context: validationContext, stripUnknown: true },
       ),
-    [device, initialActivationMode, validationContext],
+    [device, initialActivationMode, isClassB, isClassC, macSettings, validationContext],
   )
+
+  const handleMacReset = React.useCallback(async () => {
+    try {
+      await onMacReset()
+      toast({
+        message: m.resetSuccess,
+        type: toast.types.SUCCESS,
+      })
+    } catch (err) {
+      toast({
+        message: m.resetFailure,
+        type: toast.types.ERROR,
+      })
+    }
+  }, [onMacReset])
 
   const onFormSubmit = React.useCallback(
     async (values, { resetForm, setSubmitting }) => {
-      const castedValues = validationSchema.cast(values, { context: validationContext })
-      const updatedValues = diff(initialValues, castedValues, [
+      const castedValues = validationSchema.cast(values, {
+        context: validationContext,
+        stripUnknown: true,
+      })
+      const updatedValues = diff(device, castedValues, [
         '_activation_mode',
+        '_device_classes',
         'class_b',
         'class_c',
         'mac_settings',
@@ -156,7 +279,7 @@ const NetworkServerForm = React.memo(props => {
         setError(err)
       }
     },
-    [initialValues, onSubmit, onSubmitSuccess, validationContext],
+    [device, onSubmit, onSubmitSuccess, validationContext],
   )
 
   const handleDeviceClassChange = React.useCallback(
@@ -170,14 +293,15 @@ const NetworkServerForm = React.memo(props => {
             _device_classes: deviceClasses,
             mac_settings: {
               ...defaultValues.mac_settings,
+              ...macSettings,
               ...values.mac_settings,
             },
           },
-          { context: validationContext },
+          { context: validationContext, stripUnknown: true },
         ),
       )
     },
-    [validationContext],
+    [macSettings, validationContext],
   )
 
   const handleVersionChange = React.useCallback(
@@ -236,7 +360,6 @@ const NetworkServerForm = React.memo(props => {
       onSubmit={onFormSubmit}
       error={error}
       formikRef={formRef}
-      enableReinitialize
     >
       <NsFrequencyPlansSelect
         name="frequency_plan_id"
@@ -260,6 +383,7 @@ const NetworkServerForm = React.memo(props => {
         required
         tooltipId={tooltipIds.REGIONAL_PARAMETERS}
         lorawanVersion={lorawanVersion}
+        onChange={handlePhyVersionChange}
       />
       <Form.Field
         title={sharedMessages.lorawanClassCapabilities}
@@ -274,7 +398,11 @@ const NetworkServerForm = React.memo(props => {
           label={sharedMessages.supportsClassB}
           onChange={handleClassBChange}
         />
-        <Checkbox name="class_c" label={sharedMessages.supportsClassC} />
+        <Checkbox
+          name="class_c"
+          label={sharedMessages.supportsClassC}
+          onChange={handleClassCChange}
+        />
       </Form.Field>
       <Form.Field
         title={sharedMessages.activationMode}
@@ -345,7 +473,47 @@ const NetworkServerForm = React.memo(props => {
           )}
         </>
       )}
-      <MacSettingsSection activationMode={initialActivationMode} isClassB={isClassB} />
+      <Form.InfoField title={m.resetTitle} tooltipId={tooltipIds.RESET_MAC}>
+        <ModalButton
+          type="button"
+          warning
+          naked
+          message={m.resetButtonTitle}
+          modalData={{
+            children: (
+              <div>
+                <Message
+                  content={m.modalMessage}
+                  values={{
+                    b: msg => <b>{msg}</b>,
+                    ul: msg => <ul>{msg}</ul>,
+                    li: msg => <li>{msg}</li>,
+                    break: <br />,
+                    OTAADocLink: msg => (
+                      <Link.DocLink secondary path="/devices/abp-vs-otaa#otaa">
+                        {msg}
+                      </Link.DocLink>
+                    ),
+                    ABPDocLink: msg => (
+                      <Link.DocLink secondary path="/devices/abp-vs-otaa#abp">
+                        {msg}
+                      </Link.DocLink>
+                    ),
+                  }}
+                />
+              </div>
+            ),
+          }}
+          onApprove={handleMacReset}
+        />
+      </Form.InfoField>
+      <MacSettingsSection
+        activationMode={initialActivationMode}
+        lorawanVersion={lorawanVersion}
+        isClassB={isClassB}
+        isClassC={isClassC}
+        isUseAdr={initialUseAdr}
+      />
       <SubmitBar>
         <Form.Submit component={SubmitButton} message={sharedMessages.saveChanges} />
       </SubmitBar>
@@ -355,8 +523,10 @@ const NetworkServerForm = React.memo(props => {
 
 NetworkServerForm.propTypes = {
   device: PropTypes.device.isRequired,
+  getDefaultMacSettings: PropTypes.func.isRequired,
   mayEditKeys: PropTypes.bool.isRequired,
   mayReadKeys: PropTypes.bool.isRequired,
+  onMacReset: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   onSubmitSuccess: PropTypes.func.isRequired,
 }

@@ -228,6 +228,7 @@ func (js *JoinServer) HandleJoin(ctx context.Context, req *ttnpb.JoinRequest, au
 	if pld == nil {
 		return nil, errNoJoinRequest.New()
 	}
+
 	if pld.DevEui.IsZero() {
 		return nil, errNoDevEUI.New()
 	}
@@ -287,7 +288,6 @@ func (js *JoinServer) HandleJoin(ctx context.Context, req *ttnpb.JoinRequest, au
 					return res, err
 				}
 			}(dev.ApplicationIdentifiers)
-
 			if externalAuth, ok := authorizer.(ExternalAuthorizer); ok {
 				netID := dev.NetId
 				if netID == nil {
@@ -307,11 +307,13 @@ func (js *JoinServer) HandleJoin(ctx context.Context, req *ttnpb.JoinRequest, au
 				if err := externalAuth.RequireNetID(ctx, *netID); err != nil {
 					return nil, nil, err
 				}
+/*
 				if dev.NetworkServerAddress != "" {
 					if err := externalAuth.RequireAddress(ctx, dev.NetworkServerAddress); err != nil {
 						return nil, nil, err
 					}
 				}
+*/
 			}
 
 			paths := make([]string, 0, 3)

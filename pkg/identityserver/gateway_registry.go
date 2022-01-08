@@ -370,7 +370,7 @@ func (is *IdentityServer) listGateways(ctx context.Context, req *ttnpb.ListGatew
 	}
 
 	for i, gtw := range gtws.Gateways {
-		entityRights := callerMemberships.GetRights(callerAccountID, gtw.GetIds())
+		entityRights := callerMemberships.GetRights(callerAccountID, gtw.GetIds()).Union(authInfo.GetUniversalRights())
 
 		// Backwards compatibility for frequency_plan_id field.
 		if len(gtw.FrequencyPlanIds) > 0 {
@@ -444,9 +444,9 @@ func (is *IdentityServer) listGateways(ctx context.Context, req *ttnpb.ListGatew
 func (is *IdentityServer) updateGateway(ctx context.Context, req *ttnpb.UpdateGatewayRequest) (gtw *ttnpb.Gateway, err error) {
 	reqGtw := req.GetGateway()
 	if err = rights.RequireGateway(ctx, *reqGtw.GetIds(), ttnpb.RIGHT_GATEWAY_SETTINGS_BASIC); err != nil {
-		// Allow setting only the location field with the RIGHT_GATEWAY_LINK right.
+		// Allow setting the location field or the attributes field with the RIGHT_GATEWAY_LINK right.
 		isLink := rights.RequireGateway(ctx, *reqGtw.GetIds(), ttnpb.RIGHT_GATEWAY_LINK) == nil
-		if topLevel := ttnpb.TopLevelFields(req.FieldMask.GetPaths()); !isLink || len(topLevel) != 1 || topLevel[0] != "antennas" {
+		if !(isLink && ttnpb.HasOnlyAllowedFields(req.FieldMask.GetPaths(), "antennas", "attributes")) {
 			return nil, err
 		}
 	}
@@ -593,10 +593,11 @@ func (is *IdentityServer) restoreGateway(ctx context.Context, ids *ttnpb.Gateway
 		if err != nil {
 			return err
 		}
-		if gtw.DeletedAt == nil {
+		deletedAt := ttnpb.StdTime(gtw.DeletedAt)
+		if deletedAt == nil {
 			panic("store.WithSoftDeleted(ctx, true) returned result that is not deleted")
 		}
-		if time.Since(*gtw.DeletedAt) > is.configFromContext(ctx).Delete.Restore {
+		if time.Since(*deletedAt) > is.configFromContext(ctx).Delete.Restore {
 			return errRestoreWindowExpired.New()
 		}
 		return gtwStore.RestoreGateway(ctx, ids)
@@ -641,8 +642,8 @@ func validateClaimAuthenticationCode(authCode ttnpb.GatewayClaimAuthenticationCo
 	if authCode.Secret == nil {
 		return errClaimAuthenticationCode.New()
 	}
-	if authCode.ValidFrom != nil && authCode.ValidTo != nil {
-		if authCode.ValidTo.Before(*authCode.ValidFrom) {
+	if validFrom, validTo := ttnpb.StdTime(authCode.ValidFrom), ttnpb.StdTime(authCode.ValidTo); validFrom != nil && validTo != nil {
+		if validTo.Before(*validFrom) {
 			return errClaimAuthenticationCode.New()
 		}
 	}

@@ -213,7 +213,7 @@ func (is *IdentityServer) listOrganizations(ctx context.Context, req *ttnpb.List
 	}
 
 	for i, org := range orgs.Organizations {
-		entityRights := callerMemberships.GetRights(callerAccountID, org.GetIds())
+		entityRights := callerMemberships.GetRights(callerAccountID, org.GetIds()).Union(authInfo.GetUniversalRights())
 		if !entityRights.IncludesAll(ttnpb.RIGHT_ORGANIZATION_INFO) {
 			orgs.Organizations[i] = org.PublicSafe()
 		}
@@ -280,10 +280,11 @@ func (is *IdentityServer) restoreOrganization(ctx context.Context, ids *ttnpb.Or
 		if err != nil {
 			return err
 		}
-		if org.DeletedAt == nil {
+		deletedAt := ttnpb.StdTime(org.DeletedAt)
+		if deletedAt == nil {
 			panic("store.WithSoftDeleted(ctx, true) returned result that is not deleted")
 		}
-		if time.Since(*org.DeletedAt) > is.configFromContext(ctx).Delete.Restore {
+		if time.Since(*deletedAt) > is.configFromContext(ctx).Delete.Restore {
 			return errRestoreWindowExpired.New()
 		}
 		return orgStore.RestoreOrganization(ctx, ids)
