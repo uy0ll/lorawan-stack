@@ -1,15 +1,13 @@
-# Example ttn-lw-stack configuration file
-
-# Identity Server configuration
-# is:
-  # Email configuration for "thethings.example.com"
-  # email:
-    # sender-name: 'The Things Stack'
-    # sender-address: 'noreply@thethings.example.com'
-    # network:
-    #   name: 'The Things Stack'
-    #   console-url: 'https://thethings.example.com/console'
-    #   identity-server-url: 'https://thethings.example.com/oauth'
+﻿# Identity Server configuration
+# Email configuration for "client.lorawan.co.ua"
+is:
+  email:
+    sender-name: 'The Things Stack'
+    sender-address: 'noreply@client.lorawan.co.ua'
+    network:
+      name: 'The Things Stack'
+      console-url: 'http://client.lorawan.co.ua:1885/console'
+      identity-server-url: 'http://client.lorawan.co.ua:1885/oauth'
 
     # If sending email with Sendgrid
     # provider: sendgrid
@@ -23,22 +21,26 @@
     #   username: '...'             # enter SMTP server username
     #   password: '...'             # enter SMTP server password
 
-  # Web UI configuration for "thethings.example.com":
-  # oauth:
-  #   ui:
-  #     canonical-url: 'https://thethings.example.com/oauth'
-  #     is:
-  #       base-url: 'https://thethings.example.com/api/v3'
+# Web UI configuration for "client.lorawan.co.ua":
+  oauth:
+    ui:
+      canonical-url: 'http://client.lorawan.co.ua:1885/oauth'
+      is:
+        base-url: 'https://client.lorawan.co.ua:8885/api/v3'
 
 # HTTP server configuration
-# http:
-#   cookie:
-#     block-key: '...'                # generate 32 bytes (openssl rand -hex 32)
-#     hash-key: '...'                 # generate 64 bytes (openssl rand -hex 64)
-#   metrics:
-#     password: 'metrics'               # choose a password
-#   pprof:
-#     password: 'pprof'                 # choose a password
+http:
+  cookie:
+# generate 32 bytes (openssl rand -hex 32)
+    block-key: 'b565ec7190d30d43d6551768844929d02d307dfee6b311ee3acf441a9924ba01'
+# generate 64 bytes (openssl rand -hex 64)
+    hash-key: '170095dc8ad7c230742e5b288f660b184286733d94acb1fa072aafc1a3d177a135d00dd0e626f2a0cc22b3eed5e6fdf33d718133d317a4f3c353e1deee6b93bd'
+  metrics:
+# choose a password
+    password: 'metrics'
+  pprof:
+# choose a password
+    password: 'pprof' 
 
 # If using custom certificates:
 tls:
@@ -47,54 +49,88 @@ tls:
   certificate: /run/secrets/cert.pem
   key: /run/secrets/key.pem
 
-# Let's encrypt for "thethings.example.com"
-# tls:
-#   source: 'acme'
-#   acme:
-#     dir: '/var/lib/acme'
-#     email: 'you@thethings.example.com'
-#     hosts: ['thethings.example.com']
-#     default-host: 'thethings.example.com'
+# Let's encrypt for "client.lorawan.co.ua"
+#tls:
+#  source: 'acme'
+#  acme:
+#    dir: '/var/lib/acme'
+#    email: 'uy0ll@yahoo.com'
+#    hosts: ['client.lorawan.co.ua']
+#    default-host: 'client.lorawan.co.ua'
 
-# If Gateway Server enabled, defaults for "thethings.example.com":
-# gs:
-#   mqtt:
-#     public-address: 'thethings.example.com:1882'
-#     public-tls-address: 'thethings.example.com:8882'
-#   mqtt-v2:
-#     public-address: 'thethings.example.com:1881'
-#     public-tls-address: 'thethings.example.com:8881'
+# If Gateway Server enabled, defaults for "client.lorawan.co.ua":
+gs:
+  mqtt:
+    public-address: 'client.lorawan.co.ua:1882'
+    public-tls-address: 'client.lorawan.co.ua:8882'
+  mqtt-v2:
+    public-address: 'client.lorawan.co.ua:1881'
+    public-tls-address: 'client.lorawan.co.ua:8881'
 
-# If Gateway Configuration Server enabled, defaults for "thethings.example.com":
-# gcs:
-#   basic-station:
-#     default:
-#       lns-uri: 'wss://thethings.example.com:8887'
-#   the-things-gateway:
-#     default:
-#       mqtt-server: 'mqtts://thethings.example.com:8881'
+# If Gateway Configuration Server enabled, defaults for "client.lorawan.co.ua":
+gcs:
+  basic-station:
+    default:
+      lns-uri: 'wss://client.lorawan.co.ua:8887'
+  the-things-gateway:
+    default:
+      mqtt-server: 'mqtts://client.lorawan.co.ua:8881'
 
-# Web UI configuration for "thethings.example.com":
-# console:
-#   ui:
-#     canonical-url: 'https://thethings.example.com/console'
-#     is:
-#       base-url: 'https://thethings.example.com/api/v3'
-#     gs:
-#       base-url: 'https://thethings.example.com/api/v3'
-#     ns:
-#       base-url: 'https://thethings.example.com/api/v3'
-#     as:
-#       base-url: 'https://thethings.example.com/api/v3'
-#     js:
-#       base-url: 'https://thethings.example.com/api/v3'
-#     qrg:
-#       base-url: 'https://thethings.example.com/api/v3'
-#     edtc:
-#       base-url: 'https://thethings.example.com/api/v3'
-#
-#   oauth:
-#     authorize-url: 'https://thethings.example.com/oauth/authorize'
-#     token-url: 'https://thethings.example.com/oauth/token'
-#     client-id: 'console'
-#     client-secret: 'console'          # choose or generate a secret
+# Web UI configuration for "client.lorawan.co.ua":
+console:
+  ui:
+    canonical-url: 'https://client.lorawan.co.ua:8885/console'
+    is:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+    gs:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+    gcs:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+    ns:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+    as:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+    js:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+    qrg:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+    edtc:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+
+  oauth:
+    authorize-url: 'https://client.lorawan.co.ua:8885/oauth/authorize'
+    token-url: 'https://client.lorawan.co.ua:8885/oauth/token'
+    logout-url: 'https://client.lorawan.co.ua:8885/oauth/logout'
+    client-id: 'console'
+# choose or generate a secret
+    client-secret: 'console'
+
+# If Application Server enabled, defaults for "client.lorawan.co.ua":
+as:
+  mqtt:
+    public-address: 'http://client.lorawan.co.ua:1883'
+    public-tls-address: 'https://client.lorawan.co.ua:8883'
+  webhooks:
+    downlink:
+      public-address: 'https://client.lorawan.co.ua:8885/api/v3'
+
+# If Device Claiming Server enabled, defaults for "client.lorawan.co.ua":
+dcs:
+  oauth:
+    authorize-url: 'https://client.lorawan.co.ua:8885/oauth/authorize'
+    token-url: 'https://client.lorawan.co.ua:8885/oauth/token'
+    logout-url: 'https://client.lorawan.co.ua:8885/oauth/logout'
+    client-id: 'device-claiming'
+# choose or generate a secret
+    client-secret: 'device-claiming'
+  ui:
+    canonical-url: 'https://client.lorawan.co.ua:8885/claim'
+    as:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+    dcs:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+    is:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+    ns:
+      base-url: 'https://client.lorawan.co.ua:8885/api/v3'
+

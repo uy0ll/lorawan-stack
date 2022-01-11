@@ -1,0 +1,12 @@
+join-servers:
+  - file: './example/js.yml'
+    join-euis:
+      - '0000000000000000/0'
+
+#  - file: './semtech/js.yml'
+#    join-euis:
+#      - '0016c00000000000/24'
+#
+#  - file: './fallback/js.yml'
+#    join-euis:
+#      - '0016c00000000000/24'

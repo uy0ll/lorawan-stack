@@ -1,0 +1,15 @@
+fqdn: 'de02lnxprodjs01.loraclouddemo.com'
+port: 7009
+protocol: 'BI1.0'
+paths:
+#  join: 'api/v1/rens/rens-1::2/lbi_joinreq'   # replace 'rens-1::1' by the RENS issued by Semtech
+# Urbangrid owner
+  join: 'api/v1/rens/rens-32d/lbi'
+#join: 'api/v1/rens/lbi'
+tls:
+# ca_cert  = /path/to.trust
+# tls_cert = /path/to.crt
+# tls_key  = /path/to.key
+  root-ca: './ca.pem'                         # path to the client CA issued by Semtech (.trust)
+  certificate: './cert.pem'                   # path to the client TLS certificate issued by Semtech (.crt)
+  key: './key.pem'                            # path to the client TLS key issued by Semtech (.key)

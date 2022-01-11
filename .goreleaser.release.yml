@@ -19,12 +19,10 @@ builds:
     env:
       - CGO_ENABLED=0
     goos: [darwin, linux, windows]
-    goarch: [386, amd64, arm, arm64]
-    goarm: [6, 7]
+    goarch: [386, amd64]
     ignore:
       - { goos: darwin, goarch: 386 }
-      - { goos: windows, goarch: arm, goarm: 6 }
-      - { goos: windows, goarch: arm, goarm: 7 }
+      - { goos: windows }
 
   - id: cli
     main: ./cmd/ttn-lw-cli
@@ -38,12 +36,10 @@ builds:
     env:
       - CGO_ENABLED=0
     goos: [darwin, linux, windows]
-    goarch: [386, amd64, arm, arm64]
-    goarm: [6, 7]
+    goarch: [386, amd64]
     ignore:
       - { goos: darwin, goarch: 386 }
-      - { goos: windows, goarch: arm, goarm: 6 }
-      - { goos: windows, goarch: arm, goarm: 7 }
+      - { goos: windows }
 
 archives:
   - id: stack
@@ -177,16 +173,16 @@ brews:
       zsh_completion.install "config/completion/zsh/_ttn-lw-cli"
       fish_completion.install "config/completion/fish/ttn-lw-cli.fish"
 
-blobs:
-  - provider: s3
+#blobs:
+#  - provider: s3
     # NOTE: GoReleaser documentation says that bucket is a template, but it's not.
-    bucket: the-things-stack-releases
-    ids:
-      - stack
-      - cli
-    folder: '{{ .Version }}'
-    extra_files:
-      - glob: ./CHANGELOG.md
+#    bucket: uy0ll-releases
+#    ids:
+#      - stack
+#      - cli
+#    folder: '{{ .Version }}'
+#    extra_files:
+#      - glob: ./CHANGELOG.md
 
 dockers:
   - goos: linux
@@ -205,84 +201,27 @@ dockers:
       - '--label=org.opencontainers.image.version={{.Version}}'
       - '--label=org.opencontainers.image.revision={{.FullCommit}}'
     image_templates:
-      - 'thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-amd64'
-      - 'thethingsnetwork/lorawan-stack:{{ .Version }}-amd64'
-      - 'ghcr.io/thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-amd64'
-      - 'ghcr.io/thethingsnetwork/lorawan-stack:{{ .Version }}-amd64'
-    skip_push: false
-    extra_files:
-      - data
-      - public
-  - goos: linux
-    goarch: arm64
-    dockerfile: Dockerfile
-    ids:
-      - cli
-      - stack
-    use: buildx
-    build_flag_templates:
-      - --platform=linux/arm64/v8
-      - '--label=org.opencontainers.image.created={{.Date}}'
-      - '--label=org.opencontainers.image.vendor=The Things Network Foundation'
-      - '--label=org.opencontainers.image.title=The Things Stack'
-      - '--label=org.opencontainers.image.url=https://www.thethingsindustries.com/docs'
-      - '--label=org.opencontainers.image.version={{.Version}}'
-      - '--label=org.opencontainers.image.revision={{.FullCommit}}'
-    image_templates:
-      - 'thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-arm64'
-      - 'thethingsnetwork/lorawan-stack:{{ .Version }}-arm64'
-      - 'ghcr.io/thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-arm64'
-      - 'ghcr.io/thethingsnetwork/lorawan-stack:{{ .Version }}-arm64'
-    skip_push: false
-    extra_files:
-      - data
-      - public
-  - goos: linux
-    goarch: arm
-    goarm: 7
-    dockerfile: Dockerfile
-    ids:
-      - cli
-      - stack
-    use: buildx
-    build_flag_templates:
-      - --platform=linux/arm/v7
-      - '--label=org.opencontainers.image.created={{.Date}}'
-      - '--label=org.opencontainers.image.vendor=The Things Network Foundation'
-      - '--label=org.opencontainers.image.title=The Things Stack'
-      - '--label=org.opencontainers.image.url=https://www.thethingsindustries.com/docs'
-      - '--label=org.opencontainers.image.version={{.Version}}'
-      - '--label=org.opencontainers.image.revision={{.FullCommit}}'
-    image_templates:
-      - 'thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-armv7'
-      - 'thethingsnetwork/lorawan-stack:{{ .Version }}-armv7'
-      - 'ghcr.io/thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-armv7'
-      - 'ghcr.io/thethingsnetwork/lorawan-stack:{{ .Version }}-armv7'
+      - 'uy0ll/lorawan-stack:{{ .Major }}.{{ .Minor }}-amd64'
+      - 'uy0ll/lorawan-stack:{{ .Version }}-amd64'
+      - 'ghcr.io/uy0ll/lorawan-stack:{{ .Major }}.{{ .Minor }}-amd64'
+      - 'ghcr.io/uy0ll/lorawan-stack:{{ .Version }}-amd64'
     skip_push: false
     extra_files:
       - data
       - public
 docker_manifests:
-  - name_template: thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}
+  - name_template: uy0ll/lorawan-stack:{{ .Major }}.{{ .Minor }}
     image_templates:
-      - thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-amd64
-      - thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-arm64
-      - thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-armv7
-  - name_template: thethingsnetwork/lorawan-stack:{{ .Version }}
+      - uy0ll/lorawan-stack:{{ .Major }}.{{ .Minor }}-amd64
+  - name_template: uy0ll/lorawan-stack:{{ .Version }}
     image_templates:
-      - thethingsnetwork/lorawan-stack:{{ .Version }}-amd64
-      - thethingsnetwork/lorawan-stack:{{ .Version }}-arm64
-      - thethingsnetwork/lorawan-stack:{{ .Version }}-armv7
-  - name_template: ghcr.io/thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}
+      - uy0ll/lorawan-stack:{{ .Version }}-amd64
+  - name_template: ghcr.io/uy0ll/lorawan-stack:{{ .Major }}.{{ .Minor }}
     image_templates:
-      - ghcr.io/thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-amd64
-      - ghcr.io/thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-arm64
-      - ghcr.io/thethingsnetwork/lorawan-stack:{{ .Major }}.{{ .Minor }}-armv7
-  - name_template: ghcr.io/thethingsnetwork/lorawan-stack:{{ .Version }}
+      - ghcr.io/uy0ll/lorawan-stack:{{ .Major }}.{{ .Minor }}-amd64
+  - name_template: ghcr.io/uy0ll/lorawan-stack:{{ .Version }}
     image_templates:
-      - ghcr.io/thethingsnetwork/lorawan-stack:{{ .Version }}-amd64
-      - ghcr.io/thethingsnetwork/lorawan-stack:{{ .Version }}-arm64
-      - ghcr.io/thethingsnetwork/lorawan-stack:{{ .Version }}-armv7
+      - ghcr.io/uy0ll/lorawan-stack:{{ .Version }}-amd64
 
 signs:
   - artifacts: checksum
@@ -296,6 +235,7 @@ signs:
       - '${signature}'
       - '--detach-sign'
       - '-u'
-      - '{{ .Env.SIGN_KEY_NAME }}'
+      - '6CDD04A1C16EC6CD'
+#      - '{{ .Env.SIGN_KEY_NAME }}'
       - '${artifact}'
     stdin_file: /tmp/gpg_passphrase
