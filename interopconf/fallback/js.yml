@@ -1,0 +1,8 @@
+fqdn: 'server.lorawan.co.ua'              # FQDN of the Join Server, if unset, it is resolved via LoRa Alliance DNS
+port: 8886                                # port to connect at, if unset, 443 is used
+protocol: 'BI1.0'                         # protocol to use - one of BI1.0 or BI1.1
+tls:                                      # TLS configuration to use
+  root-ca: './ca.pem'                     # path to client CA
+  certificate: './cert.pem'               # path to client TLS certificate
+  key: './key.pem'                        # path to client TLS key
+
