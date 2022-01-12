@@ -20,6 +20,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"os"
+	"fmt"
 
 	"go.thethings.network/lorawan-stack/v3/pkg/config"
 	"go.thethings.network/lorawan-stack/v3/pkg/config/tlsconfig"
@@ -46,6 +47,7 @@ type fetcherFileReader struct {
 var errFetchFile = errors.Define("fetch_file", "fetch file `{name}`")
 
 func (r fetcherFileReader) ReadFile(name string) ([]byte, error) {
+        fmt.Printf("Fetch file: %s\n", name)
 	b, err := r.fetcher.File(name)
 	if err != nil {
 		return nil, errFetchFile.WithCause(err).WithAttributes("name", name)
@@ -94,8 +96,10 @@ func fetchSenderClientCAs(ctx context.Context, conf config.InteropServer, httpCl
 			}
 			cert, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
+                        fmt.Printf("******* SenderClientCA ERROR certificate\n")
 				return nil, err
 			}
+                        fmt.Printf("******* SenderClientCA appended  ***************\n")
 			res = append(res, cert)
 		}
 		return res, nil
@@ -146,6 +150,7 @@ func fetchSenderClientCAs(ctx context.Context, conf config.InteropServer, httpCl
 
 			senderClientCAs = make(map[string][]*x509.Certificate, len(yamlConf))
 			for senderID, filename := range yamlConf {
+                                fmt.Printf("******* Fetcher SenderClientCA file: %s\n", filename)
 				b, err := fetcher.File(filename)
 				if err != nil {
 					return nil, err

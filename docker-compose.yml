@@ -1,47 +1,50 @@
-version: '3.7'
+version: "3.7"
 services:
-  # If using CockroachDB:
-  cockroach:
-    image: cockroachdb/cockroach:v19.2.4
-    command: start --http-port 26256 --insecure
+  postgres:
+    image: postgres
     restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=ttn_lorawan_dev
     volumes:
-      - ${DEV_DATA_DIR:-.env/data}/cockroach:/cockroach/cockroach-data
+      - ${DEV_DATA_DIR:-.env/data}/postgres:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:26257:26257" # Cockroach
-      - "127.0.0.1:26256:26256" # WebUI
+      - "127.0.0.1:5432:5432"
 
   redis:
-    image: redis:6.2.6-bullseye
+    image: redis
     command: redis-server --appendonly yes
     restart: unless-stopped
     volumes:
       - ${DEV_DATA_DIR:-.env/data}/redis:/data
     ports:
-      - "127.0.0.1:6380:6379"  # Change in line 63 too so it doesn't clash with another Redis
+      - "127.0.0.1:6379:6379"
 
   stack:
-    image: docker.io/uy0ll/lorawan-stack:3.16.1-amd64
-    #image: thethingsnetwork/lorawan-stack:3.16.1
-    entrypoint: ttn-lw-stack
+    image: thethingsnetwork/lorawan-stack
+    entrypoint: ttn-lw-stack -c /config/ttn-lw-stack-docker.yml
     command: start
     restart: unless-stopped
     depends_on:
       - redis
-      - cockroach
-
-    # If using (self) signed certificates:
-    secrets:
-      - cert.pem
-      - key.pem
-
+      - postgres
     volumes:
       - ./blob:/srv/ttn-lorawan/public/blob
+      - ./config/stack:/config:ro
+      # If using Let's Encrypt:
+      # - ./acme:/var/lib/acme
+    environment:
+      TTN_LW_BLOB_LOCAL_DIRECTORY: /srv/ttn-lorawan/public/blob
+      TTN_LW_REDIS_ADDRESS: redis:6379
+      TTN_LW_IS_DATABASE_URI: postgres://root:root@postgres:5432/ttn_lorawan?sslmode=disable
 
     ports:
       # If deploying on a public server:
-      - "80:1885"
-      - "443:8885"
+      # - "80:1885"
+      # - "443:8885"
+      - "1881:1881"
+      - "8881:8881"
       - "1882:1882"
       - "8882:8882"
       - "1883:1883"
@@ -50,81 +53,23 @@ services:
       - "8884:8884"
       - "1885:1885"
       - "8885:8885"
-# non-TLS interop listener https://github.com/TheThingsNetwork/lorawan-stack/issues/4924
       - "1886:1886"
-# Interop TLS external port 
       - "8886:8886"
       - "1887:1887"
       - "8887:8887"
       - "1700:1700/udp"
 
-    environment:
-      - TTN_LW_LOG_LEVEL=debug
-      - TTN_LW_NETWORK_SERVER_NET-ID="000000"
-      - TTN_LW_NETWORK_SERVER_INTEROP_DIRECTORY="./interopconf"
-      - TTN_LW_INTEROP_SENDER-CLIENT-CA_DIRECTORY="./interopconf/sender-client-ca"
-      - TTN_LW_BLOB_LOCAL_DIRECTORY=/srv/ttn-lorawan/public/blob
-      - TTN_LW_IS_DATABASE_URI=postgres://root@cockroach:26257/ttn_lorawan?sslmode=disable
-      - TTN_LW_REDIS_ADDRESS=redis:6379
+    # If using custom certificates:
+    secrets:
+      - ca.pem
+      - cert.pem
+      - key.pem
 
-      # If using (self) signed certificates:
-      - TTN_LW_TLS_SOURCE=file
-      - TTN_LW_TLS_ROOT_CA=/run/secrets/cert.pem
-      - TTN_LW_TLS_CERTIFICATE=/run/secrets/cert.pem
-      - TTN_LW_TLS_KEY=/run/secrets/key.pem
-
-      # HTTP Server configuration:
-      - TTN_LW_HTTP_COOKIE_HASH_KEY # generate 64 bytes (openssl rand -hex 64)
-      - TTN_LW_HTTP_COOKIE_BLOCK_KEY # generate 32 bytes (openssl rand -hex 32)
-      - TTN_LW_HTTP_METRICS_PASSWORD # choose a password
-      - TTN_LW_HTTP_PPROF_PASSWORD # choose a password
-
-      # Email configuration for "thethings.example.com":
-      # - TTN_LW_IS_EMAIL_SENDER_NAME=The Things Stack
-      # - TTN_LW_IS_EMAIL_SENDER_ADDRESS=noreply@thethings.example.com
-      # - TTN_LW_IS_EMAIL_NETWORK_CONSOLE_URL=https://thethings.example.com/console
-      # - TTN_LW_IS_EMAIL_NETWORK_IDENTITY_SERVER_URL=https://thethings.example.com/oauth
-
-     # If sending email with Sendgrid:
-      # - TTN_LW_IS_EMAIL_PROVIDER=sendgrid
-      # - TTN_LW_IS_EMAIL_SENDGRID_API_KEY=enter Sendgrid API key
-
-      # If sending email with SMTP:
-      # - TTN_LW_IS_EMAIL_PROVIDER=smtp
-      # - TTN_LW_IS_EMAIL_SMTP_ADDRESS=enter mail server address
-      # - TTN_LW_IS_EMAIL_SMTP_USERNAME=enter username
-      # - TTN_LW_IS_EMAIL_SMTP_PASSWORD=enter password
-
-      # If Application Server enabled, defaults for "thethings.example.com":
-      # NOTE: THis is irrelevant as this MQTT broker is not being used! This is the Ship Network Local IP of Edge Box and not VPN 
-      - TTN_LW_AS_MQTT_PUBLIC_ADDRESS=$URL_MQTT_INTERNAL
-      - TTN_LW_AS_MQTT_PUBLIC_TLS_ADDRESS=$URLS_MQTT_INTERNAL
-
-      # Web UI configuration for "thethings.example.com":
-      - TTN_LW_IS_OAUTH_UI_CANONICAL_URL=$UI_URL/oauth
-      - TTN_LW_IS_OAUTH_UI_IS_BASE_URL=$UI_URL/api/v3
-      - TTN_LW_CONSOLE_OAUTH_AUTHORIZE_URL=$UI_URL/oauth/authorize
-      - TTN_LW_CONSOLE_OAUTH_TOKEN_URL=$UI_URL/oauth/token
-      - TTN_LW_CONSOLE_OAUTH_LOGOUT_URL=$UI_URL/oauth/logout
-      - TTN_LW_CONSOLE_UI_CANONICAL_URL=$UI_URL/console
-      - TTN_LW_CONSOLE_UI_IS_BASE_URL=$UI_URL/api/v3
-      - TTN_LW_CONSOLE_UI_GS_BASE_URL=$UI_URL/api/v3
-      - TTN_LW_CONSOLE_UI_NS_BASE_URL=$UI_URL/api/v3
-      - TTN_LW_CONSOLE_UI_AS_BASE_URL=$UI_URL/api/v3
-      - TTN_LW_CONSOLE_UI_JS_BASE_URL=$UI_URL/api/v3
-      - TTN_LW_CONSOLE_UI_EDTC_BASE_URL=$UI_URL/api/v3
-      - TTN_LW_CONSOLE_UI_QRG_BASE_URL=$UI_URL/api/v3
-
-      # Console OAuth client and secret:
-      - TTN_LW_CONSOLE_OAUTH_CLIENT_ID=console
-# generate a good one using (openssl rand -hex 32)
-      - TTN_LW_CONSOLE_OAUTH_CLIENT_SECRET=832aac84f52ba264afa529150db010c6143a5da1c122d4ea725ee3a47c13525b
-#      - TTN_LW_CONSOLE_OAUTH_CLIENT_SECRET=27f16012680d726a490a11bfd4e3e106a08afad70069f1f91077b0736cc00f73 # generate a good one using (openssl rand -hex 32)
-# If using (self) signed certificates:
+# If using custom certificates:
 secrets:
-  cert.pem:
-    file: /run/secrets/cert.pem
-  key.pem:
-    file: /run/secrets/key.pem
   ca.pem:
-    file: /run/secrets/ca.pem
+    file: ./ca.pem
+  cert.pem:
+    file: ./cert.pem
+  key.pem:
+    file: ./key.pem

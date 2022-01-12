@@ -309,11 +309,13 @@ func (js *JoinServer) HandleJoin(ctx context.Context, req *ttnpb.JoinRequest, au
 				if err := externalAuth.RequireNetID(ctx, *netID); err != nil {
 					return nil, nil, err
 				}
+/*
 				if dev.NetworkServerAddress != "" {
 					if err := externalAuth.RequireAddress(ctx, dev.NetworkServerAddress); err != nil {
 						return nil, nil, err
 					}
 				}
+*/
 			}
 
 			paths := make([]string, 0, 3)

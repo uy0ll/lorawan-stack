@@ -18,6 +18,7 @@ import (
 	"context"
 	"os"
 	"time"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -376,6 +377,7 @@ func (c InteropClient) Fetcher(ctx context.Context, httpClientProvider httpclien
 	}
 	switch c.ConfigSource {
 	case "directory":
+                fmt.Printf("Fetch Interop Directory %s\n", c.Directory)
 		return fetch.FromFilesystem(c.Directory), nil
 	case "url":
 		httpClient, err := httpClientProvider.HTTPClient(ctx, httpclient.WithCache(true))
@@ -407,8 +409,25 @@ type SenderClientCA struct {
 // Fetcher returns fetch.Interface defined by conf.
 // If no configuration source is set, this method returns nil, nil.
 func (c SenderClientCA) Fetcher(ctx context.Context, httpClientProvider httpclient.Provider) (fetch.Interface, error) {
+
+        if c.Source == "" {
+                switch {
+                case c.Directory != "":
+                        if stat, err := os.Stat(c.Directory); err == nil && stat.IsDir() {
+                                c.Source = "directory"
+                                break
+                        }
+                        fallthrough
+                case c.URL != "":
+                        c.Source = "url"
+                case !c.Blob.IsZero():
+                        c.Source = "blob"
+                }
+        }
+
 	switch c.Source {
 	case "directory":
+                fmt.Printf("Fetch SenderClientCA Directory: %s\n",c.Directory)
 		return fetch.FromFilesystem(c.Directory), nil
 	case "url":
 		httpClient, err := httpClientProvider.HTTPClient(ctx, httpclient.WithCache(true))
