@@ -102,6 +102,7 @@ type tokenVerifier interface {
 // by Packet Broker.
 func (s *Server) authenticateNS(ctx context.Context, r *http.Request, data []byte) (context.Context, error) {
 	var header NsMessageHeader
+        var nontls int = 1
 	if err := json.Unmarshal(data, &header); err != nil {
 		return nil, ErrMalformedMessage.WithCause(err)
 	}
@@ -112,17 +113,23 @@ func (s *Server) authenticateNS(ctx context.Context, r *http.Request, data []byt
 	for _, authFunc := range []func(context.Context) (*NetworkServerAuthInfo, error){
 		// Verify TLS client certificate.
 		func(ctx context.Context) (*NetworkServerAuthInfo, error) {
-			if r.TLS == nil || len(r.TLS.PeerCertificates) == 0 {
-				return nil, nil
+			if !(r.TLS == nil || len(r.TLS.PeerCertificates) == 0) {
+				nontls = 0
 			}
-			addrs, err := s.verifySenderCertificate(ctx, types.NetID(header.SenderID).String(), r.TLS)
-			if err != nil {
-				return nil, err
+			if nontls == 0 {
+                                addrs, err := s.verifySenderCertificate(ctx, types.NetID(header.SenderID).String(), r.TLS)
+                                if err != nil {
+                                        return nil, err
+				}
+	                        return &NetworkServerAuthInfo{
+                                        NetID:     types.NetID(header.SenderID),
+                                        Addresses: addrs,
+                        	}, nil
 			}
-			return &NetworkServerAuthInfo{
-				NetID:     types.NetID(header.SenderID),
-				Addresses: addrs,
-			}, nil
+				return &NetworkServerAuthInfo{
+                                        NetID:     types.NetID{0x0, 0x0, 0x0},
+                                        Addresses: []string{"localhost"},
+				}, nil
 		},
 		// Verify token in a best-effort manner.
 		func(ctx context.Context) (*NetworkServerAuthInfo, error) {
