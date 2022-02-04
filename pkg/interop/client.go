@@ -312,7 +312,6 @@ var errUnknownConfig = errors.DefineNotFound("unknown_config", "configuration is
 
 // NewClient return new interop client.
 func NewClient(ctx context.Context, conf config.InteropClient, httpClientProvider httpclient.Provider) (*Client, error) {
-        fmt.Printf("*********** NewClient return new interop client  ***********\n")
 	fetcher, err := conf.Fetcher(ctx, httpClientProvider)
 	if err != nil {
 		return nil, err

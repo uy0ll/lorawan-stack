@@ -1010,7 +1010,7 @@ func (ns *NetworkServer) sendJoinRequest(ctx context.Context, ids *ttnpb.EndDevi
 		}
 	} else {
         if ns.interopClient != nil {
-	        fmt.Printf("********************** Interop Join ******************\n") 
+//	        fmt.Printf("********************** Interop Join ******************\n") 
                 queuedEvents = append(queuedEvents, evtInteropJoinAttempt.NewWithIdentifiersAndData(ctx, ids, req))
                 resp, err := ns.interopClient.HandleJoinRequest(ctx, ns.netID, req)
                 if err == nil {
@@ -1024,7 +1024,7 @@ func (ns *NetworkServer) sendJoinRequest(ctx context.Context, ids *ttnpb.EndDevi
                         return nil, queuedEvents, err
                 }
         }
-                fmt.Printf("********************** Local Join ******************\n")
+/*                fmt.Printf("********************** Local Join ******************\n")
 		queuedEvents = append(queuedEvents, evtClusterJoinAttempt.NewWithIdentifiersAndData(ctx, ids, req))
 		resp, err := ttnpb.NewNsJsClient(cc).HandleJoin(ctx, req, ns.WithClusterAuth())
 		if err == nil {
@@ -1037,6 +1037,7 @@ func (ns *NetworkServer) sendJoinRequest(ctx context.Context, ids *ttnpb.EndDevi
 		if !errors.IsNotFound(err) {
 			return nil, queuedEvents, err
 		}
+*/
 	}
 	return nil, queuedEvents, errJoinServerNotFound.New()
 }
