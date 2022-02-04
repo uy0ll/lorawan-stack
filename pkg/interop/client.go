@@ -282,6 +282,9 @@ func makeJoinServerHTTPRequestFunc(scheme, dns, fqdn string, port uint32, rpcPat
 	if port == 0 {
 		port = defaultHTTPSPort
 	}
+	if port == 1886 {
+                scheme = "http"
+	}
 	return func(joinEUI types.EUI64, pathFunc func(jsRPCPaths) string, pld interface{}) (*http.Request, error) {
 		fqdn := fqdn
 		if fqdn == "" {
@@ -309,6 +312,7 @@ var errUnknownConfig = errors.DefineNotFound("unknown_config", "configuration is
 
 // NewClient return new interop client.
 func NewClient(ctx context.Context, conf config.InteropClient, httpClientProvider httpclient.Provider) (*Client, error) {
+        fmt.Printf("*********** NewClient return new interop client  ***********\n")
 	fetcher, err := conf.Fetcher(ctx, httpClientProvider)
 	if err != nil {
 		return nil, err
@@ -369,12 +373,10 @@ func NewClient(ctx context.Context, conf config.InteropClient, httpClientProvide
 				}
 				opts = append(opts, httpclient.WithTLSConfig(tlsConf))
 			}
-
 			httpClient, err := httpClientProvider.HTTPClient(ctx, opts...)
 			if err != nil {
 				return nil, err
 			}
-
 			js = &joinServerHTTPClient{
 				Client:         httpClient,
 				NewRequestFunc: makeJoinServerHTTPRequestFunc("https", yamlJSConf.DNS, yamlJSConf.FQDN, yamlJSConf.Port, yamlJSConf.Paths, yamlJSConf.Headers),
