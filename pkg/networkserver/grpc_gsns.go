@@ -1009,8 +1009,8 @@ func (ns *NetworkServer) sendJoinRequest(ctx context.Context, ids *ttnpb.EndDevi
 			logger.WithError(err).Error("Join Server peer connection lookup failed")
 		}
 	} else {
-        if ns.interopClient != nil {
-//	        fmt.Printf("********************** Interop Join ******************\n") 
+          if ns.interopClient != nil {
+	        fmt.Printf("********************** Interop Join ******************\n") 
                 queuedEvents = append(queuedEvents, evtInteropJoinAttempt.NewWithIdentifiersAndData(ctx, ids, req))
                 resp, err := ns.interopClient.HandleJoinRequest(ctx, ns.netID, req)
                 if err == nil {
@@ -1023,23 +1023,23 @@ func (ns *NetworkServer) sendJoinRequest(ctx context.Context, ids *ttnpb.EndDevi
                 if !errors.IsNotFound(err) {
                         return nil, queuedEvents, err
                 }
-        }
-/*                fmt.Printf("********************** Local Join ******************\n")
-		queuedEvents = append(queuedEvents, evtClusterJoinAttempt.NewWithIdentifiersAndData(ctx, ids, req))
-		resp, err := ttnpb.NewNsJsClient(cc).HandleJoin(ctx, req, ns.WithClusterAuth())
-		if err == nil {
-			logger.Debug("Join-request accepted by cluster-local Join Server")
-			queuedEvents = append(queuedEvents, evtClusterJoinSuccess.NewWithIdentifiersAndData(ctx, ids, joinResponseWithoutKeys(resp)))
-			return resp, queuedEvents, nil
-		}
-		logger.WithError(err).Info("Cluster-local Join Server did not accept join-request")
-		queuedEvents = append(queuedEvents, evtClusterJoinFail.NewWithIdentifiersAndData(ctx, ids, err))
-		if !errors.IsNotFound(err) {
-			return nil, queuedEvents, err
-		}
-*/
-	}
-	return nil, queuedEvents, errJoinServerNotFound.New()
+          } else {
+                	fmt.Printf("********************** Local Join ******************\n")
+			queuedEvents = append(queuedEvents, evtClusterJoinAttempt.NewWithIdentifiersAndData(ctx, ids, req))
+			resp, err := ttnpb.NewNsJsClient(cc).HandleJoin(ctx, req, ns.WithClusterAuth())
+			if err == nil {
+				logger.Debug("Join-request accepted by cluster-local Join Server")
+				queuedEvents = append(queuedEvents, evtClusterJoinSuccess.NewWithIdentifiersAndData(ctx, ids, joinResponseWithoutKeys(resp)))
+				return resp, queuedEvents, nil
+			}
+			logger.WithError(err).Info("Cluster-local Join Server did not accept join-request")
+			queuedEvents = append(queuedEvents, evtClusterJoinFail.NewWithIdentifiersAndData(ctx, ids, err))
+			if !errors.IsNotFound(err) {
+				return nil, queuedEvents, err
+			}
+		 }
+      }
+	 return nil, queuedEvents, errJoinServerNotFound.New()
 }
 
 func (ns *NetworkServer) deduplicationDone(ctx context.Context, up *ttnpb.UplinkMessage) <-chan time.Time {
